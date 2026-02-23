@@ -1,0 +1,141 @@
+/* =====================
+   Auth Pages (Login/Register)
+   ===================== */
+
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 100px 24px 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-bg-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.auth-bg-orb-1 {
+    width: 350px;
+    height: 350px;
+    background: rgba(139, 92, 246, 0.2);
+    top: 10%;
+    left: 5%;
+    animation: float 8s ease-in-out infinite;
+}
+
+.auth-bg-orb-2 {
+    width: 280px;
+    height: 280px;
+    background: rgba(236, 72, 153, 0.15);
+    bottom: 10%;
+    right: 5%;
+    animation: float 8s ease-in-out infinite 3s;
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 440px;
+    position: relative;
+    z-index: 1;
+}
+
+.auth-card {
+    padding: 40px 36px;
+    animation: fadeInUp 0.5s ease;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.auth-logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 1.5rem;
+    color: #fff;
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
+}
+
+.auth-title {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+
+.auth-subtitle {
+    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+}
+
+.auth-form {
+    margin-bottom: 24px;
+}
+
+.input-icon-wrapper {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+    transition: color var(--transition-base);
+    pointer-events: none;
+}
+
+.form-input-icon {
+    padding-left: 46px;
+}
+
+.form-input-icon:focus~.input-icon,
+.form-input-icon:focus+.input-icon {
+    color: var(--color-accent-primary);
+}
+
+.input-icon-wrapper:focus-within .input-icon {
+    color: var(--color-accent-primary);
+}
+
+.auth-submit {
+    width: 100%;
+    margin-top: 8px;
+}
+
+.auth-footer-text {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.auth-link {
+    color: var(--color-accent-primary);
+    font-weight: 600;
+}
+
+.auth-link:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 32px 24px;
+    }
+}
