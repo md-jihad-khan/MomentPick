@@ -93,22 +93,11 @@ export default function EventDetail() {
         }
     };
 
-    const handleDownload = async (photo) => {
-        try {
-            const response = await fetch(photo.url);
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = photo.file_name || 'photo.jpg';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-            toast.success('Download started!');
-        } catch (err) {
-            toast.error('Failed to download photo.');
-        }
+    const handleDownload = (photo) => {
+        // Use backend proxy to avoid CORS and force download
+        const downloadUrl = `${api.defaults.baseURL}/photos/download/${photo.id}`;
+        window.open(downloadUrl, '_blank');
+        toast.success('Download started!');
     };
 
     const handleBulkDownload = async () => {
@@ -363,7 +352,12 @@ export default function EventDetail() {
 
                     <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
                         <div className="lightbox-image-container">
-                            <img src={lightboxPhoto.url} alt={lightboxPhoto.file_name} className="lightbox-image" />
+                            <img 
+                                key={lightboxPhoto.id}
+                                src={lightboxPhoto.url} 
+                                alt={lightboxPhoto.file_name} 
+                                className="lightbox-image" 
+                            />
                         </div>
                         <div className="lightbox-info">
                             <span>Uploaded Anonymous</span>

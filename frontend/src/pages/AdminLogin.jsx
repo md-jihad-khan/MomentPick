@@ -45,7 +45,6 @@ export default function AdminLogin() {
                     <form onSubmit={handleSubmit} className="auth-form">
                         <div className="form-group">
                             <div className="input-icon-wrapper">
-                                <HiOutlineUser className="input-icon" />
                                 <input
                                     type="text"
                                     className="form-input"
@@ -60,7 +59,6 @@ export default function AdminLogin() {
                         </div>
                         <div className="form-group">
                             <div className="input-icon-wrapper">
-                                <HiOutlineLockClosed className="input-icon" />
                                 <input
                                     type="password"
                                     className="form-input"

@@ -58,34 +58,28 @@ export default function JoinEvent() {
                     <form onSubmit={handleSubmit} className="auth-form">
                         <div className="form-group">
                             <label className="form-label">Invite Code</label>
-                            <div className="input-icon-wrapper">
-                                <HiOutlineKey className="input-icon" />
-                                <input
-                                    type="text"
-                                    className="form-input form-input-icon"
-                                    placeholder="e.g. A1B2C3D4"
-                                    value={code}
-                                    onChange={(e) => setCode(e.target.value.toUpperCase())}
-                                    required
-                                    id="join-invite-code"
-                                />
-                            </div>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="e.g. A1B2C3D4"
+                                value={code}
+                                onChange={(e) => setCode(e.target.value.toUpperCase())}
+                                required
+                                id="join-invite-code"
+                            />
                         </div>
 
                         <div className="form-group">
                             <label className="form-label">Event Password</label>
-                            <div className="input-icon-wrapper">
-                                <HiOutlineLockClosed className="input-icon" />
-                                <input
-                                    type="password"
-                                    className="form-input form-input-icon"
-                                    placeholder="Enter event password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                    id="join-event-password"
-                                />
-                            </div>
+                            <input
+                                type="password"
+                                className="form-input"
+                                placeholder="Enter event password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                id="join-event-password"
+                            />
                         </div>
 
                         <button type="submit" className="btn btn-primary btn-lg auth-submit" disabled={loading} id="join-submit">

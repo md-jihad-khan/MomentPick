@@ -193,33 +193,27 @@ export default function Dashboard() {
                         <form onSubmit={handleJoin}>
                             <div className="form-group">
                                 <label className="form-label">Invite Code</label>
-                                <div className="input-icon-wrapper">
-                                    <HiOutlineLink className="input-icon" />
-                                    <input
-                                        type="text"
-                                        className="form-input form-input-icon"
-                                        placeholder="e.g. A1B2C3D4"
-                                        value={joinCode}
-                                        onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                                        required
-                                        id="join-code-input"
-                                    />
-                                </div>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="e.g. A1B2C3D4"
+                                    value={joinCode}
+                                    onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                                    required
+                                    id="join-code-input"
+                                />
                             </div>
                             <div className="form-group">
                                 <label className="form-label">Event Password</label>
-                                <div className="input-icon-wrapper">
-                                    <HiOutlineKey className="input-icon" />
-                                    <input
-                                        type="password"
-                                        className="form-input form-input-icon"
-                                        placeholder="Enter event password"
-                                        value={joinPassword}
-                                        onChange={(e) => setJoinPassword(e.target.value)}
-                                        required
-                                        id="join-password-input"
-                                    />
-                                </div>
+                                <input
+                                    type="password"
+                                    className="form-input"
+                                    placeholder="Enter event password"
+                                    value={joinPassword}
+                                    onChange={(e) => setJoinPassword(e.target.value)}
+                                    required
+                                    id="join-password-input"
+                                />
                             </div>
                             <div className="modal-actions">
                                 <button type="button" onClick={() => setShowJoinModal(false)} className="btn btn-secondary">
