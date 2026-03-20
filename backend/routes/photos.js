@@ -4,7 +4,6 @@ const path = require('path');
 const db = require('../utils/db');
 const { uploadFile, getFile, deleteFile } = require('../utils/r2');
 const authMiddleware = require('../middleware/auth');
-const archiver = require('archiver');
 
 
 const router = express.Router();
@@ -12,7 +11,7 @@ const router = express.Router();
 // Configure multer for memory storage
 const upload = multer({
     storage: multer.memoryStorage(),
-    limits: { 
+    limits: {
         fileSize: 50 * 1024 * 1024, // 50MB max per file
         files: 1000, // Max number of files
         parts: 2000 // Max number of parts (fields + files)
@@ -38,7 +37,7 @@ router.post('/upload/:eventId', authMiddleware, upload.array('photos', 1000), as
             .select('*')
             .eq('id', eventId)
             .single();
-        
+
         if (!event) {
             return res.status(404).json({ error: 'Event not found.' });
         }
@@ -123,7 +122,7 @@ router.delete('/:photoId', authMiddleware, async (req, res) => {
         // For simplicity in anonymous mode, allow deletion if found
         // In a real app we might want a session token, but user said "remove databases"
         // so we'll just allow direct deletion if someone has the photoId.
-        
+
         // Delete from storage
         await deleteFile(photo.storage_path);
 
@@ -156,11 +155,11 @@ router.get('/download/:photoId', async (req, res) => {
 
         console.log(`[DOWNLOAD] Fetching from storage: ${photo.storage_path}`);
         const response = await getFile(photo.storage_path);
-        
+
         // Set headers for download
         res.setHeader('Content-Type', photo.mime_type || 'image/jpeg');
         res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(photo.file_name || 'photo.jpg')}"`);
-        
+
         // Stream the file
         if (response.Body && typeof response.Body.pipe === 'function') {
             response.Body.pipe(res);
@@ -171,70 +170,6 @@ router.get('/download/:photoId', async (req, res) => {
     } catch (err) {
         console.error('[DOWNLOAD ERROR]', err);
         res.status(500).json({ error: 'Failed to download photo from server.' });
-    }
-});
-
-// GET /api/photos/bulk-download - Zip and download multiple photos
-router.get('/bulk-download', async (req, res) => {
-    try {
-        const { ids } = req.query;
-        if (!ids) return res.status(400).json({ error: 'No photo IDs provided.' });
-
-        const photoIds = ids.split(',').filter(id => id.length > 0);
-        if (photoIds.length === 0) return res.status(400).json({ error: 'invalid photo IDs.' });
-
-        const { data: photos } = await db
-            .from('photos')
-            .select('*')
-            .in('id', photoIds);
-
-        if (!photos || photos.length === 0) {
-            return res.status(404).json({ error: 'None of the photos were found.' });
-        }
-
-        // Initialize archive
-        const archive = archiver('zip', {
-            zlib: { level: 9 } // Maximum compression
-        });
-
-        // Response headers
-        res.setHeader('Content-Type', 'application/zip');
-        res.setHeader('Content-Disposition', `attachment; filename="event_photos_${Date.now()}.zip"`);
-
-        // Catch warnings/errors
-        archive.on('warning', (err) => {
-            if (err.code === 'ENOENT') {
-                console.warn('[ZIP] Warning:', err);
-            } else {
-                throw err;
-            }
-        });
-
-        archive.on('error', (err) => {
-            throw err;
-        });
-
-        // Pipe to response
-        archive.pipe(res);
-
-        // Add files to archive
-        for (const photo of photos) {
-            try {
-                const s3Response = await getFile(photo.storage_path);
-                // Use original name or fallback to id
-                const fileName = photo.file_name || `${photo.id}.jpg`;
-                archive.append(s3Response.Body, { name: fileName });
-            } catch (err) {
-                console.error(`[ZIP] Failed to add photo ${photo.id} to archive:`, err);
-                // Continue adding other photos even if one fails
-            }
-        }
-
-        // Finalize
-        archive.finalize();
-    } catch (err) {
-        console.error('[BULK DOWNLOAD ERROR]', err);
-        res.status(500).json({ error: 'Failed to create bulk zip download.' });
     }
 });
 

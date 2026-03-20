@@ -105,18 +105,15 @@ export default function EventDetail() {
         toast.success('Download starting...');
     };
 
-    const handleBulkDownload = () => {
+    const handleBulkDownload = async () => {
         if (selectedPhotos.length === 0) {
-            return toast.error('Select photos first.');
+            return toast.error('Select photos to download.');
         }
-        
-        // Prepare IDs for query string
-        const ids = selectedPhotos.join(',');
-        const downloadUrl = `${api.defaults.baseURL}/photos/bulk-download?ids=${ids}`;
-        
-        // Trigger download
-        window.open(downloadUrl, '_blank');
-        toast.success(`Preparing ${selectedPhotos.length} photos in a ZIP...`);
+
+        for (const photoId of selectedPhotos) {
+            const photo = photos.find(p => p.id === photoId);
+            if (photo) await handleDownload(photo);
+        }
         setSelectedPhotos([]);
     };
 
@@ -328,9 +325,9 @@ export default function EventDetail() {
                                     <div className="photo-info">
                                         <span className="photo-uploader">{photo.uploader_name}</span>
                                         <div className="photo-actions-inline">
-                                            <a 
+                                            <a
                                                 href={`${api.defaults.baseURL}/photos/download/${photo.id}`}
-                                                className="photo-action-btn" 
+                                                className="photo-action-btn"
                                                 title="Download"
                                                 onClick={(e) => e.stopPropagation()}
                                                 target="_blank"
@@ -357,7 +354,7 @@ export default function EventDetail() {
                 <div className="lightbox">
                     {/* Background overlay specifically for closing */}
                     <div className="lightbox-overlay" onClick={closeLightbox}></div>
-                    
+
                     <button className="lightbox-close" onClick={closeLightbox} id="lightbox-close">
                         <HiOutlineX />
                     </button>
@@ -370,23 +367,23 @@ export default function EventDetail() {
 
                     <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
                         <div className="lightbox-image-container">
-                            <img 
+                            <img
                                 key={lightboxPhoto.id}
-                                src={lightboxPhoto.url} 
-                                alt={lightboxPhoto.file_name} 
-                                className="lightbox-image" 
+                                src={lightboxPhoto.url}
+                                alt={lightboxPhoto.file_name}
+                                className="lightbox-image"
                             />
                         </div>
                         <div className="lightbox-info">
                             <span>Uploaded Anonymous</span>
                             <div className="lightbox-actions">
-                                <a 
+                                <a
                                     href={`${api.defaults.baseURL}/photos/download/${lightboxPhoto.id}`}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         e.nativeEvent.stopImmediatePropagation();
-                                    }} 
-                                    className="btn btn-primary btn-sm" 
+                                    }}
+                                    className="btn btn-primary btn-sm"
                                     id="lightbox-download"
                                     target="_blank"
                                     rel="noopener noreferrer"
