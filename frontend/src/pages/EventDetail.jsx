@@ -94,10 +94,15 @@ export default function EventDetail() {
     };
 
     const handleDownload = (photo) => {
-        // Use backend proxy to avoid CORS and force download
-        const downloadUrl = `${api.defaults.baseURL}/photos/download/${photo.id}`;
-        window.open(downloadUrl, '_blank');
-        toast.success('Download started!');
+        // Use a hidden anchor tag to trigger the proxied download
+        const url = `${api.defaults.baseURL}/photos/download/${photo.id}`;
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', photo.file_name || 'photo.jpg');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success('Download starting...');
     };
 
     const handleBulkDownload = async () => {
