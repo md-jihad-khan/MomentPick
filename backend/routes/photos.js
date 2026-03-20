@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const db = require('../utils/db');
-const { uploadFile, deleteFile } = require('../utils/r2');
+const { uploadFile, getFile, deleteFile } = require('../utils/r2');
 const authMiddleware = require('../middleware/auth');
 
 
@@ -133,6 +133,43 @@ router.delete('/:photoId', authMiddleware, async (req, res) => {
     } catch (err) {
         console.error('Delete photo error:', err);
         res.status(500).json({ error: 'Failed to delete photo.' });
+    }
+});
+
+// GET /api/photos/download/:photoId - Public download proxy (to avoid CORS)
+router.get('/download/:photoId', async (req, res) => {
+    try {
+        const { photoId } = req.params;
+        console.log(`[DOWNLOAD] Requesting photo download for ID: ${photoId}`);
+
+        const { data: photo } = await db
+            .from('photos')
+            .select('*')
+            .eq('id', photoId)
+            .single();
+
+        if (!photo) {
+            console.warn(`[DOWNLOAD] Photo not found in database for ID: ${photoId}`);
+            return res.status(404).json({ error: 'Photo not found.' });
+        }
+
+        console.log(`[DOWNLOAD] Fetching from storage: ${photo.storage_path}`);
+        const response = await getFile(photo.storage_path);
+        
+        // Set headers for download
+        res.setHeader('Content-Type', photo.mime_type || 'image/jpeg');
+        res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(photo.file_name || 'photo.jpg')}"`);
+        
+        // Stream the file
+        if (response.Body && typeof response.Body.pipe === 'function') {
+            response.Body.pipe(res);
+        } else {
+            console.error('[DOWNLOAD] Storage response body is not pipeable.');
+            res.status(500).json({ error: 'Streaming error.' });
+        }
+    } catch (err) {
+        console.error('[DOWNLOAD ERROR]', err);
+        res.status(500).json({ error: 'Failed to download photo from server.' });
     }
 });
 

@@ -1,4 +1,4 @@
-const { S3Client, PutObjectCommand, DeleteObjectCommand, DeleteObjectsCommand } = require("@aws-sdk/client-s3");
+const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, DeleteObjectsCommand } = require("@aws-sdk/client-s3");
 require('dotenv').config();
 
 const r2Client = new S3Client({
@@ -44,6 +44,21 @@ const deleteFile = async (fileName) => {
     }
 };
 
+const getFile = async (fileName) => {
+    const command = new GetObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME,
+        Key: fileName,
+    });
+
+    try {
+        const response = await r2Client.send(command);
+        return response;
+    } catch (err) {
+        console.error("R2 Get Error:", err);
+        throw err;
+    }
+};
+
 const deleteFiles = async (fileNames) => {
     if (!fileNames || fileNames.length === 0) return;
     
@@ -62,4 +77,4 @@ const deleteFiles = async (fileNames) => {
     }
 };
 
-module.exports = { uploadFile, deleteFile, deleteFiles };
+module.exports = { uploadFile, getFile, deleteFile, deleteFiles };
