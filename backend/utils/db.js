@@ -6,6 +6,11 @@ const DB_PATH = path.join(__dirname, '../db.json');
 
 function readDB() {
     try {
+        if (!fs.existsSync(DB_PATH)) {
+            const initialData = { users: [], events: [], event_participants: [], photos: [] };
+            fs.writeFileSync(DB_PATH, JSON.stringify(initialData, null, 2), 'utf8');
+            return initialData;
+        }
         const data = fs.readFileSync(DB_PATH, 'utf8');
         return JSON.parse(data);
     } catch (err) {
