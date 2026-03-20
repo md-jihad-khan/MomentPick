@@ -449,6 +449,7 @@
     color: var(--color-text-secondary);
     font-size: 0.9rem;
     gap: 16px;
+    pointer-events: auto;
 }
 
 .lightbox-actions {

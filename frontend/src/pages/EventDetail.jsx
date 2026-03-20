@@ -105,15 +105,18 @@ export default function EventDetail() {
         toast.success('Download starting...');
     };
 
-    const handleBulkDownload = async () => {
+    const handleBulkDownload = () => {
         if (selectedPhotos.length === 0) {
-            return toast.error('Select photos to download.');
+            return toast.error('Select photos first.');
         }
-
-        for (const photoId of selectedPhotos) {
-            const photo = photos.find(p => p.id === photoId);
-            if (photo) await handleDownload(photo);
-        }
+        
+        // Prepare IDs for query string
+        const ids = selectedPhotos.join(',');
+        const downloadUrl = `${api.defaults.baseURL}/photos/bulk-download?ids=${ids}`;
+        
+        // Trigger download
+        window.open(downloadUrl, '_blank');
+        toast.success(`Preparing ${selectedPhotos.length} photos in a ZIP...`);
         setSelectedPhotos([]);
     };
 
