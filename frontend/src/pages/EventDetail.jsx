@@ -367,7 +367,11 @@ export default function EventDetail() {
                         <div className="lightbox-info">
                             <span>Uploaded Anonymous</span>
                             <div className="lightbox-actions">
-                                <button onClick={() => handleDownload(lightboxPhoto)} className="btn btn-primary btn-sm" id="lightbox-download">
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); handleDownload(lightboxPhoto); }} 
+                                    className="btn btn-primary btn-sm" 
+                                    id="lightbox-download"
+                                >
                                     <HiOutlineDownload />
                                     Download
                                 </button>
