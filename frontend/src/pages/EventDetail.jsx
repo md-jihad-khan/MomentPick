@@ -351,7 +351,10 @@ export default function EventDetail() {
 
             {/* Lightbox - Moved OUTSIDE of animated container */}
             {lightboxPhoto && (
-                <div className="lightbox" onClick={closeLightbox}>
+                <div className="lightbox">
+                    {/* Background overlay specifically for closing */}
+                    <div className="lightbox-overlay" onClick={closeLightbox}></div>
+                    
                     <button className="lightbox-close" onClick={closeLightbox} id="lightbox-close">
                         <HiOutlineX />
                     </button>
