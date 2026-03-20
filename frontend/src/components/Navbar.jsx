@@ -1,16 +1,10 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { HiOutlineCamera, HiOutlinePlus, HiOutlineViewGrid, HiOutlineLogout, HiOutlineUser } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
-import { HiOutlineCamera, HiOutlineLogout, HiOutlinePlus, HiOutlineViewGrid } from 'react-icons/hi';
 import './Navbar.css';
 
 export default function Navbar() {
-    const { user, isAuthenticated, logout } = useAuth();
-    const navigate = useNavigate();
-
-    const handleLogout = () => {
-        logout();
-        navigate('/');
-    };
+    const { isAdmin, logout } = useAuth();
 
     return (
         <nav className="navbar">
@@ -21,32 +15,27 @@ export default function Navbar() {
                 </Link>
 
                 <div className="navbar-links">
-                    {isAuthenticated ? (
+                    <Link to="/dashboard" className="navbar-link" id="nav-dashboard">
+                        <HiOutlineViewGrid />
+                        <span>Events</span>
+                    </Link>
+                    
+                    {isAdmin ? (
                         <>
-                            <Link to="/dashboard" className="navbar-link" id="nav-dashboard">
-                                <HiOutlineViewGrid />
-                                <span>My Events</span>
-                            </Link>
                             <Link to="/create-event" className="navbar-link navbar-link-create" id="nav-create-event">
                                 <HiOutlinePlus />
                                 <span>Create</span>
                             </Link>
-                            <div className="navbar-user">
-                                <div className="navbar-avatar">
-                                    {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                                </div>
-                                <span className="navbar-user-name">{user?.name?.split(' ')[0]}</span>
-                            </div>
-                            <button onClick={handleLogout} className="navbar-link navbar-logout-btn" id="nav-logout">
+                            <button onClick={logout} className="navbar-link btn-logout" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}>
                                 <HiOutlineLogout />
                                 <span>Logout</span>
                             </button>
                         </>
                     ) : (
-                        <>
-                            <Link to="/login" className="navbar-link" id="nav-login">Login</Link>
-                            <Link to="/register" className="btn btn-primary btn-sm" id="nav-register">Get Started</Link>
-                        </>
+                        <Link to="/admin-login" className="navbar-link" id="nav-login">
+                            <HiOutlineUser />
+                            <span>Admin</span>
+                        </Link>
                     )}
                 </div>
             </div>

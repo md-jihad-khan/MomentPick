@@ -57,66 +57,66 @@ export default function Register() {
 
                     <form onSubmit={handleSubmit} className="auth-form">
                         <div className="form-group">
-                            <label className="form-label">Full Name</label>
                             <div className="input-icon-wrapper">
                                 <HiOutlineUser className="input-icon" />
                                 <input
                                     type="text"
-                                    className="form-input form-input-icon"
-                                    placeholder="John Doe"
+                                    className="form-input"
+                                    placeholder=" "
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     required
                                     id="register-name"
                                 />
+                                <label className="floating-label" htmlFor="register-name">Full Name</label>
                             </div>
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">Email</label>
                             <div className="input-icon-wrapper">
                                 <HiOutlineMail className="input-icon" />
                                 <input
                                     type="email"
-                                    className="form-input form-input-icon"
-                                    placeholder="you@example.com"
+                                    className="form-input"
+                                    placeholder=" "
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
                                     id="register-email"
                                 />
+                                <label className="floating-label" htmlFor="register-email">Email Address</label>
                             </div>
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">Password</label>
                             <div className="input-icon-wrapper">
                                 <HiOutlineLockClosed className="input-icon" />
                                 <input
                                     type="password"
-                                    className="form-input form-input-icon"
-                                    placeholder="Min 6 characters"
+                                    className="form-input"
+                                    placeholder=" "
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
                                     id="register-password"
                                 />
+                                <label className="floating-label" htmlFor="register-password">Password</label>
                             </div>
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">Confirm Password</label>
                             <div className="input-icon-wrapper">
                                 <HiOutlineLockClosed className="input-icon" />
                                 <input
                                     type="password"
-                                    className="form-input form-input-icon"
-                                    placeholder="Repeat password"
+                                    className="form-input"
+                                    placeholder=" "
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     required
                                     id="register-confirm-password"
                                 />
+                                <label className="floating-label" htmlFor="register-confirm-password">Confirm Password</label>
                             </div>
                         </div>
 
@@ -124,6 +124,7 @@ export default function Register() {
                             {loading ? <div className="spinner spinner-sm"></div> : 'Create Account'}
                         </button>
                     </form>
+
 
                     <p className="auth-footer-text">
                         Already have an account? <Link to="/login" className="auth-link">Sign in</Link>

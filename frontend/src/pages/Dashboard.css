@@ -35,6 +35,48 @@
     flex-shrink: 0;
 }
 
+/* Tabs */
+.dashboard-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 1px;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 12px 24px;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    position: relative;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.tab-btn:hover {
+    color: var(--color-text-secondary);
+    background: rgba(139, 92, 246, 0.05);
+}
+
+.tab-btn-active {
+    color: var(--color-accent-primary);
+}
+
+.tab-btn-active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--gradient-primary);
+    border-radius: 2px;
+}
+
 /* Events Grid */
 .events-grid {
     display: grid;

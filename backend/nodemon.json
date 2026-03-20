@@ -1,0 +1,4 @@
+{
+  "ignore": ["db.json", "node_modules", ".git"],
+  "delay": "500"
+}

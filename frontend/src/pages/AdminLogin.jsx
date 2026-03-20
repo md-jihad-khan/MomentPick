@@ -1,13 +1,12 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import api from '../utils/api';
 import toast from 'react-hot-toast';
-import { HiOutlineMail, HiOutlineLockClosed, HiOutlineCamera } from 'react-icons/hi';
+import { HiOutlineLockClosed, HiOutlineUser, HiOutlineCamera } from 'react-icons/hi';
 import './Auth.css';
 
-export default function Login() {
-    const [email, setEmail] = useState('');
+export default function AdminLogin() {
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const { login } = useAuth();
@@ -16,11 +15,9 @@ export default function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-
         try {
-            const res = await api.post('/auth/login', { email, password });
-            login(res.data.token, res.data.user);
-            toast.success('Welcome back!');
+            await login(username, password);
+            toast.success('Admin login successful!');
             navigate('/dashboard');
         } catch (err) {
             toast.error(err.response?.data?.error || 'Login failed.');
@@ -31,36 +28,36 @@ export default function Login() {
 
     return (
         <div className="auth-page page-enter">
+            {/* Background Orbs */}
             <div className="auth-bg-orb auth-bg-orb-1"></div>
             <div className="auth-bg-orb auth-bg-orb-2"></div>
 
             <div className="auth-container">
                 <div className="auth-card glass-strong">
+                    <div className="auth-logo">
+                        <HiOutlineCamera />
+                    </div>
                     <div className="auth-header">
-                        <div className="auth-logo">
-                            <HiOutlineCamera />
-                        </div>
-                        <h1 className="auth-title">Welcome Back</h1>
-                        <p className="auth-subtitle">Sign in to access your events and photos</p>
+                        <h1 className="auth-title">Admin <span className="text-gradient">Login</span></h1>
+                        <p className="auth-subtitle">Elevated access for MomentPick management.</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="auth-form">
                         <div className="form-group">
                             <div className="input-icon-wrapper">
-                                <HiOutlineMail className="input-icon" />
+                                <HiOutlineUser className="input-icon" />
                                 <input
-                                    type="email"
+                                    type="text"
                                     className="form-input"
                                     placeholder=" "
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
                                     required
-                                    id="login-email"
+                                    autoComplete="username"
                                 />
-                                <label className="floating-label" htmlFor="login-email">Email Address</label>
+                                <label className="floating-label">Username</label>
                             </div>
                         </div>
-
                         <div className="form-group">
                             <div className="input-icon-wrapper">
                                 <HiOutlineLockClosed className="input-icon" />
@@ -71,20 +68,19 @@ export default function Login() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
-                                    id="login-password"
+                                    autoComplete="current-password"
                                 />
-                                <label className="floating-label" htmlFor="login-password">Password</label>
+                                <label className="floating-label">Password</label>
                             </div>
                         </div>
 
-                        <button type="submit" className="btn btn-primary btn-lg auth-submit" disabled={loading} id="login-submit">
-                            {loading ? <div className="spinner spinner-sm"></div> : 'Sign In'}
+                        <button type="submit" className="btn auth-submit btn-primary" disabled={loading}>
+                            {loading ? <div className="spinner spinner-sm"></div> : 'Login to Dashboard'}
                         </button>
                     </form>
 
-
                     <p className="auth-footer-text">
-                        Don't have an account? <Link to="/register" className="auth-link">Create one</Link>
+                        Authorized Access Only
                     </p>
                 </div>
             </div>

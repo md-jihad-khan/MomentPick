@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import { HiOutlineCamera, HiOutlineShieldCheck, HiOutlineUserGroup, HiOutlineDownload, HiOutlineClock, HiOutlineSparkles } from 'react-icons/hi';
+import { useAuth } from '../context/AuthContext';
 import './Home.css';
 
 export default function Home() {
-    const { isAuthenticated } = useAuth();
+    const { isAdmin } = useAuth();
 
     return (
         <div className="home-page page-enter">
@@ -31,25 +31,17 @@ export default function Home() {
                     </p>
 
                     <div className="hero-actions">
-                        {isAuthenticated ? (
-                            <>
-                                <Link to="/dashboard" className="btn btn-primary btn-lg" id="hero-dashboard-btn">
-                                    Go to Dashboard
-                                </Link>
-                                <Link to="/create-event" className="btn btn-secondary btn-lg" id="hero-create-btn">
-                                    Create Event
-                                </Link>
-                            </>
-                        ) : (
-                            <>
-                                <Link to="/register" className="btn btn-primary btn-lg" id="hero-register-btn">
-                                    Get Started — Free
-                                </Link>
-                                <Link to="/login" className="btn btn-secondary btn-lg" id="hero-login-btn">
-                                    I Have an Account
-                                </Link>
-                            </>
+                        {isAdmin && (
+                            <Link to="/create-event" className="btn btn-primary btn-lg" id="hero-create-btn">
+                                Create Event
+                            </Link>
                         )}
+                        <Link to="/dashboard" className={`btn ${isAdmin ? 'btn-secondary' : 'btn-primary'} btn-lg`} id="hero-dashboard-btn">
+                            Explore Events
+                        </Link>
+                        <Link to="/join" className="btn btn-secondary btn-lg" id="hero-join-btn">
+                            Join Event
+                        </Link>
                     </div>
 
                     <div className="hero-stats">
@@ -59,8 +51,8 @@ export default function Home() {
                         </div>
                         <div className="hero-stat-divider"></div>
                         <div className="hero-stat">
-                            <span className="hero-stat-number">7 Days</span>
-                            <span className="hero-stat-label">Auto Cleanup</span>
+                            <span className="hero-stat-number">Pure</span>
+                            <span className="hero-stat-label">Privacy</span>
                         </div>
                         <div className="hero-stat-divider"></div>
                         <div className="hero-stat">
@@ -100,7 +92,7 @@ export default function Home() {
                             </div>
                             <h3 className="step-title">Friends Join In</h3>
                             <p className="step-desc">
-                                Your friends create accounts, enter the password once, and they're in — permanently saved to their profile.
+                                Your friends enter the password once, and they're in — the event is saved to their dashboard for easy access.
                             </p>
                         </div>
 
@@ -133,8 +125,8 @@ export default function Home() {
                         </div>
                         <div className="feature-card">
                             <HiOutlineClock className="feature-icon feature-icon-pink" />
-                            <h3>Auto-Expiry (7 Days)</h3>
-                            <p>Events and all photos are automatically cleaned up after 7 days. Zero clutter.</p>
+                            <h3>Safe & Simple</h3>
+                            <p>Events stay active until the admin decides to close them. No random deletions.</p>
                         </div>
                         <div className="feature-card">
                             <HiOutlineDownload className="feature-icon feature-icon-cyan" />
@@ -143,8 +135,8 @@ export default function Home() {
                         </div>
                         <div className="feature-card">
                             <HiOutlineUserGroup className="feature-icon feature-icon-emerald" />
-                            <h3>One-Time Join</h3>
-                            <p>Enter the password once and the event stays on your dashboard forever — no re-entry needed.</p>
+                            <h3>Easy Access</h3>
+                            <p>Enter the password once and the event stays on your dashboard for quick access anytime.</p>
                         </div>
                     </div>
                 </div>
@@ -158,15 +150,15 @@ export default function Home() {
                             Ready to share your next adventure?
                         </h2>
                         <p className="cta-desc">
-                            Create your free account and start sharing moments with your friends today.
+                            Start sharing moments with your friends today.
                         </p>
-                        {isAuthenticated ? (
+                        {isAdmin ? (
                             <Link to="/create-event" className="btn btn-primary btn-lg" id="cta-create-btn">
                                 Create Your First Event
                             </Link>
                         ) : (
-                            <Link to="/register" className="btn btn-primary btn-lg" id="cta-register-btn">
-                                Sign Up for Free
+                            <Link to="/dashboard" className="btn btn-primary btn-lg" id="cta-explore-btn">
+                                Explore Public Events
                             </Link>
                         )}
                     </div>

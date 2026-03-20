@@ -1,54 +1,47 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect } from 'react';
 import api from '../utils/api';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
-    const [user, setUser] = useState(null);
+export const useAuth = () => useContext(AuthContext);
+
+export const AuthProvider = ({ children }) => {
+    const [admin, setAdmin] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem('momentpick_token');
-        const savedUser = localStorage.getItem('momentpick_user');
-
-        if (token && savedUser) {
-            setUser(JSON.parse(savedUser));
-            // Verify token is still valid
-            api.get('/auth/me')
-                .then(res => {
-                    setUser(res.data.user);
-                    localStorage.setItem('momentpick_user', JSON.stringify(res.data.user));
-                })
-                .catch(() => {
-                    logout();
-                })
-                .finally(() => setLoading(false));
-        } else {
+        const checkAuth = async () => {
+            const token = localStorage.getItem('momentpick_token');
+            if (token) {
+                try {
+                    const res = await api.get('/auth/me');
+                    setAdmin(res.data);
+                } catch (err) {
+                    localStorage.removeItem('momentpick_token');
+                    setAdmin(null);
+                }
+            }
             setLoading(false);
-        }
+        };
+        checkAuth();
     }, []);
 
-    const login = (token, userData) => {
-        localStorage.setItem('momentpick_token', token);
-        localStorage.setItem('momentpick_user', JSON.stringify(userData));
-        setUser(userData);
+    const login = async (username, password) => {
+        const res = await api.post('/auth/login', { username, password });
+        localStorage.setItem('momentpick_token', res.data.token);
+        setAdmin({ username: res.data.username, isAdmin: true });
+        return res.data;
     };
 
     const logout = () => {
         localStorage.removeItem('momentpick_token');
-        localStorage.removeItem('momentpick_user');
-        setUser(null);
+        setAdmin(null);
+        window.location.href = '/';
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout, isAuthenticated: !!user }}>
+        <AuthContext.Provider value={{ admin, login, logout, isAdmin: !!admin?.isAdmin, loading }}>
             {children}
         </AuthContext.Provider>
     );
-}
-
-export function useAuth() {
-    const context = useContext(AuthContext);
-    if (!context) throw new Error('useAuth must be used within AuthProvider');
-    return context;
-}
+};

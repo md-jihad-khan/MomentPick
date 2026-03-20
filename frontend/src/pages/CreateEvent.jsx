@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import { HiOutlineCalendar, HiOutlineLockClosed, HiOutlinePencil, HiOutlineInformationCircle } from 'react-icons/hi';
+import './Auth.css'; // Re-use the premium auth styles
 import './CreateEvent.css';
 
 export default function CreateEvent() {
@@ -28,6 +29,14 @@ export default function CreateEvent() {
 
         try {
             const res = await api.post('/events', { name, description, password });
+            
+            // Save to localStorage
+            const joinedIds = JSON.parse(localStorage.getItem('joined_events') || '[]');
+            if (!joinedIds.includes(res.data.event.id)) {
+                joinedIds.push(res.data.event.id);
+                localStorage.setItem('joined_events', JSON.stringify(joinedIds));
+            }
+
             toast.success('Event created! Share the invite code with your friends.');
             navigate(`/event/${res.data.event.id}`);
         } catch (err) {
@@ -46,80 +55,85 @@ export default function CreateEvent() {
                             <div className="create-event-icon">
                                 <HiOutlineCalendar />
                             </div>
-                            <h1 className="create-event-title">Create New Event</h1>
+                            <h1 className="create-event-title">Create New <span className="text-gradient">Event</span></h1>
                             <p className="create-event-subtitle">
-                                Set up a photo-sharing event for your group. The event will expire in 7 days.
+                                Set up a safe, private photo-sharing event for your group.
                             </p>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="create-event-form">
+                        <form onSubmit={handleSubmit} className="auth-form create-event-form">
                             <div className="form-group">
-                                <label className="form-label">Event Name</label>
                                 <div className="input-icon-wrapper">
                                     <HiOutlinePencil className="input-icon" />
                                     <input
                                         type="text"
-                                        className="form-input form-input-icon"
-                                        placeholder="e.g. Beach Trip 2026"
+                                        className="form-input"
+                                        placeholder=" "
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         required
                                         id="event-name-input"
                                     />
+                                    <label className="floating-label">Event Name</label>
                                 </div>
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label">Description (optional)</label>
-                                <textarea
-                                    className="form-input"
-                                    placeholder="What's this event about?"
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                    rows={3}
-                                    id="event-description-input"
-                                />
+                                <div className="input-icon-wrapper">
+                                    <textarea
+                                        className="form-input"
+                                        placeholder=" "
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                        rows={3}
+                                        id="event-description-input"
+                                        style={{ height: 'auto', paddingTop: '36px', paddingBottom: '16px' }}
+                                    />
+                                    <label className="floating-label" style={{ top: '12px', transform: 'none' }}>Description (optional)</label>
+                                </div>
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label">Event Password</label>
                                 <div className="input-icon-wrapper">
                                     <HiOutlineLockClosed className="input-icon" />
                                     <input
                                         type="password"
-                                        className="form-input form-input-icon"
-                                        placeholder="Password to join this event"
+                                        className="form-input"
+                                        placeholder=" "
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
                                         id="event-password-input"
+                                        autoComplete="new-password"
                                     />
+                                    <label className="floating-label">Event Password</label>
                                 </div>
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label">Confirm Password</label>
                                 <div className="input-icon-wrapper">
                                     <HiOutlineLockClosed className="input-icon" />
                                     <input
                                         type="password"
-                                        className="form-input form-input-icon"
-                                        placeholder="Repeat event password"
+                                        className="form-input"
+                                        placeholder=" "
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         required
                                         id="event-confirm-password-input"
+                                        autoComplete="new-password"
                                     />
+                                    <label className="floating-label">Confirm Password</label>
                                 </div>
                             </div>
 
                             <div className="create-event-info">
                                 <HiOutlineInformationCircle />
-                                <p>Share the invite code and password with your friends so they can join and contribute photos.</p>
+                                <p>Invite friends using the code and password generated after creation. They can contribute unlimited photos!</p>
                             </div>
 
-                            <button type="submit" className="btn btn-primary btn-lg create-event-submit" disabled={loading} id="create-event-submit">
-                                {loading ? <div className="spinner spinner-sm"></div> : 'Create Event'}
+                            <button type="submit" className="btn auth-submit btn-primary btn-lg create-event-submit" disabled={loading} id="create-event-submit">
+                                {loading ? <div className="spinner spinner-sm"></div> : 'Launch Event'}
                             </button>
                         </form>
                     </div>

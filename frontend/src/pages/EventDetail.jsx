@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import {
@@ -8,11 +7,11 @@ import {
     HiOutlineClock, HiOutlineClipboardCopy, HiOutlinePhotograph,
     HiOutlineX, HiOutlineChevronLeft, HiOutlineChevronRight, HiOutlineShare
 } from 'react-icons/hi';
+import { useAuth } from '../context/AuthContext';
 import './EventDetail.css';
 
 export default function EventDetail() {
     const { id } = useParams();
-    const { user } = useAuth();
     const navigate = useNavigate();
     const fileInputRef = useRef(null);
 
@@ -25,10 +24,34 @@ export default function EventDetail() {
     const [lightboxPhoto, setLightboxPhoto] = useState(null);
     const [lightboxIndex, setLightboxIndex] = useState(0);
     const [showParticipants, setShowParticipants] = useState(false);
+    const { isAdmin } = useAuth();
 
+    // Initial data fetch - only on id change
     useEffect(() => {
         fetchEventData();
     }, [id]);
+
+    // Keyboard navigation for lightbox
+    useEffect(() => {
+        if (lightboxPhoto) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+
+        const handleKeyDown = (e) => {
+            if (!lightboxPhoto) return;
+            if (e.key === 'ArrowLeft') navigateLightbox(-1);
+            if (e.key === 'ArrowRight') navigateLightbox(1);
+            if (e.key === 'Escape') closeLightbox();
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            document.body.style.overflow = 'unset';
+        };
+    }, [lightboxPhoto, lightboxIndex, photos]); // Keep these for lightbox functionality
 
     const fetchEventData = async () => {
         try {
@@ -167,14 +190,7 @@ export default function EventDetail() {
         }
     };
 
-    const getTimeRemaining = (expiresAt) => {
-        const diff = new Date(expiresAt) - new Date();
-        if (diff <= 0) return 'Expired';
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        if (days > 0) return `${days}d ${hours}h remaining`;
-        return `${hours}h remaining`;
-    };
+
 
     if (loading) {
         return (
@@ -188,173 +204,151 @@ export default function EventDetail() {
     if (!event) return null;
 
     return (
-        <div className="event-detail-page page-enter">
-            <div className="container">
-                {/* Event Header */}
-                <div className="event-detail-header">
-                    <div className="event-detail-info">
-                        <h1 className="event-detail-title">{event.name}</h1>
-                        {event.description && (
-                            <p className="event-detail-desc">{event.description}</p>
-                        )}
-                        <div className="event-detail-meta">
-                            <span className="event-detail-meta-item">
-                                <HiOutlineUserGroup />
-                                {participants.length} member{participants.length !== 1 ? 's' : ''}
-                            </span>
-                            <span className="event-detail-meta-item">
-                                <HiOutlinePhotograph />
-                                {photos.length} photo{photos.length !== 1 ? 's' : ''}
-                            </span>
-                            <span className="event-detail-meta-item event-detail-timer">
-                                <HiOutlineClock />
-                                {getTimeRemaining(event.expires_at)}
-                            </span>
-                            <span className="event-detail-meta-item event-detail-creator">
-                                by {event.is_creator ? 'You' : event.creator_name}
-                            </span>
+        <>
+            <div className="event-detail-page page-enter">
+                <div className="container">
+                    {/* Event Header */}
+                    <div className="event-detail-header">
+                        <div className="event-detail-info">
+                            <h1 className="event-detail-title">{event.name}</h1>
+                            {event.description && (
+                                <p className="event-detail-desc">{event.description}</p>
+                            )}
+                            <div className="event-detail-meta">
+                                <span className="event-detail-meta-item">
+                                    <HiOutlineUserGroup />
+                                    {participants.length} member{participants.length !== 1 ? 's' : ''}
+                                </span>
+                                <span className="event-detail-meta-item">
+                                    <HiOutlinePhotograph />
+                                    {photos.length} photo{photos.length !== 1 ? 's' : ''}
+                                </span>
+                                <span className="event-detail-meta-item event-detail-creator">
+                                    Admin Managed
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="event-detail-actions">
+                            <button onClick={copyInviteCode} className="btn btn-secondary btn-sm" id="copy-invite-code">
+                                <HiOutlineClipboardCopy />
+                                Code: {event.invite_code}
+                            </button>
+                            <button onClick={copyInviteLink} className="btn btn-secondary btn-sm" id="copy-invite-link">
+                                <HiOutlineShare />
+                                Share Link
+                            </button>
+                            {isAdmin && (
+                                <button onClick={handleDeleteEvent} className="btn btn-danger btn-sm" id="delete-event-btn">
+                                    <HiOutlineTrash />
+                                    Delete
+                                </button>
+                            )}
                         </div>
                     </div>
 
-                    <div className="event-detail-actions">
-                        <button onClick={() => setShowParticipants(!showParticipants)} className="btn btn-secondary btn-sm" id="toggle-participants">
-                            <HiOutlineUserGroup />
-                            Members
-                        </button>
-                        <button onClick={copyInviteCode} className="btn btn-secondary btn-sm" id="copy-invite-code">
-                            <HiOutlineClipboardCopy />
-                            Code: {event.invite_code}
-                        </button>
-                        <button onClick={copyInviteLink} className="btn btn-secondary btn-sm" id="copy-invite-link">
-                            <HiOutlineShare />
-                            Share Link
-                        </button>
-                        {event.is_creator && (
-                            <button onClick={handleDeleteEvent} className="btn btn-danger btn-sm" id="delete-event-btn">
-                                <HiOutlineTrash />
-                                Delete
-                            </button>
-                        )}
-                    </div>
-                </div>
+                    {/* Participants Panel removed */}
 
-                {/* Participants Panel */}
-                {showParticipants && (
-                    <div className="participants-panel glass animate-fade-in">
-                        <h3 className="participants-title">Members ({participants.length})</h3>
-                        <div className="participants-list">
-                            {participants.map((p) => (
-                                <div key={p.id} className="participant-item">
-                                    <div className="participant-avatar">
-                                        {p.name?.charAt(0)?.toUpperCase() || '?'}
+                    {/* Upload Section (Admin Only) */}
+                    {isAdmin && (
+                        <div className="upload-section glass">
+                            <div className="upload-area" onClick={() => fileInputRef.current?.click()}>
+                                {uploading ? (
+                                    <>
+                                        <div className="spinner"></div>
+                                        <p>Uploading photos...</p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <HiOutlineUpload className="upload-icon" />
+                                        <p className="upload-text">Click to upload photos</p>
+                                        <p className="upload-hint">JPEG, PNG, WebP, GIF, HEIC — up to 50MB each</p>
+                                    </>
+                                )}
+                            </div>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                onChange={handleUpload}
+                                style={{ display: 'none' }}
+                                id="photo-upload-input"
+                            />
+                        </div>
+                    )}
+
+                    {/* Selection toolbar */}
+                    {photos.length > 0 && (
+                        <div className="gallery-toolbar">
+                            <div className="gallery-toolbar-left">
+                                <button onClick={selectAll} className="btn btn-secondary btn-sm" id="select-all-btn">
+                                    {selectedPhotos.length === photos.length ? 'Deselect All' : 'Select All'}
+                                </button>
+                                {selectedPhotos.length > 0 && (
+                                    <span className="selection-count">{selectedPhotos.length} selected</span>
+                                )}
+                            </div>
+                            {selectedPhotos.length > 0 && (
+                                <button onClick={handleBulkDownload} className="btn btn-primary btn-sm" id="bulk-download-btn">
+                                    <HiOutlineDownload />
+                                    Download Selected ({selectedPhotos.length})
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Photo Gallery */}
+                    {photos.length === 0 ? (
+                        <div className="empty-state" style={{ padding: '60px 20px' }}>
+                            <div className="empty-state-icon">
+                                <HiOutlinePhotograph />
+                            </div>
+                            <h2>No Photos Yet</h2>
+                            <p>Be the first to upload photos to this event!</p>
+                        </div>
+                    ) : (
+                        <div className="photo-gallery">
+                            {photos.map((photo, index) => (
+                                <div
+                                    key={photo.id}
+                                    className={`photo-card ${selectedPhotos.includes(photo.id) ? 'photo-card-selected' : ''}`}
+                                    style={{ animationDelay: `${Math.min(index * 0.05, 1)}s` }}
+                                >
+                                    <div className="photo-select" onClick={() => togglePhotoSelect(photo.id)}>
+                                        <div className={`photo-checkbox ${selectedPhotos.includes(photo.id) ? 'photo-checkbox-checked' : ''}`}>
+                                            {selectedPhotos.includes(photo.id) && '✓'}
+                                        </div>
                                     </div>
-                                    <div>
-                                        <span className="participant-name">{p.name}</span>
-                                        <span className="participant-email">{p.email}</span>
+
+                                    <div className="photo-image-wrapper" onClick={() => openLightbox(photo, index)}>
+                                        <img src={photo.url} alt={photo.file_name} className="photo-image" loading="lazy" />
+                                        <div className="photo-overlay">
+                                            <span>View</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="photo-info">
+                                        <span className="photo-uploader">{photo.uploader_name}</span>
+                                        <div className="photo-actions-inline">
+                                            <button onClick={() => handleDownload(photo)} className="photo-action-btn" title="Download">
+                                                <HiOutlineDownload />
+                                            </button>
+                                            {isAdmin && (
+                                                <button onClick={() => handleDeletePhoto(photo.id)} className="photo-action-btn photo-action-delete" title="Delete">
+                                                    <HiOutlineTrash />
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                    </div>
-                )}
-
-                {/* Upload Section */}
-                <div className="upload-section glass">
-                    <div className="upload-area" onClick={() => fileInputRef.current?.click()}>
-                        {uploading ? (
-                            <>
-                                <div className="spinner"></div>
-                                <p>Uploading photos...</p>
-                            </>
-                        ) : (
-                            <>
-                                <HiOutlineUpload className="upload-icon" />
-                                <p className="upload-text">Click to upload photos</p>
-                                <p className="upload-hint">JPEG, PNG, WebP, GIF, HEIC — up to 15MB each, max 20 at a time</p>
-                            </>
-                        )}
-                    </div>
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        onChange={handleUpload}
-                        style={{ display: 'none' }}
-                        id="photo-upload-input"
-                    />
+                    )}
                 </div>
-
-                {/* Selection toolbar */}
-                {photos.length > 0 && (
-                    <div className="gallery-toolbar">
-                        <div className="gallery-toolbar-left">
-                            <button onClick={selectAll} className="btn btn-secondary btn-sm" id="select-all-btn">
-                                {selectedPhotos.length === photos.length ? 'Deselect All' : 'Select All'}
-                            </button>
-                            {selectedPhotos.length > 0 && (
-                                <span className="selection-count">{selectedPhotos.length} selected</span>
-                            )}
-                        </div>
-                        {selectedPhotos.length > 0 && (
-                            <button onClick={handleBulkDownload} className="btn btn-primary btn-sm" id="bulk-download-btn">
-                                <HiOutlineDownload />
-                                Download Selected ({selectedPhotos.length})
-                            </button>
-                        )}
-                    </div>
-                )}
-
-                {/* Photo Gallery */}
-                {photos.length === 0 ? (
-                    <div className="empty-state" style={{ padding: '60px 20px' }}>
-                        <div className="empty-state-icon">
-                            <HiOutlinePhotograph />
-                        </div>
-                        <h2>No Photos Yet</h2>
-                        <p>Be the first to upload photos to this event!</p>
-                    </div>
-                ) : (
-                    <div className="photo-gallery">
-                        {photos.map((photo, index) => (
-                            <div
-                                key={photo.id}
-                                className={`photo-card ${selectedPhotos.includes(photo.id) ? 'photo-card-selected' : ''}`}
-                                style={{ animationDelay: `${Math.min(index * 0.05, 1)}s` }}
-                            >
-                                <div className="photo-select" onClick={() => togglePhotoSelect(photo.id)}>
-                                    <div className={`photo-checkbox ${selectedPhotos.includes(photo.id) ? 'photo-checkbox-checked' : ''}`}>
-                                        {selectedPhotos.includes(photo.id) && '✓'}
-                                    </div>
-                                </div>
-
-                                <div className="photo-image-wrapper" onClick={() => openLightbox(photo, index)}>
-                                    <img src={photo.url} alt={photo.file_name} className="photo-image" loading="lazy" />
-                                    <div className="photo-overlay">
-                                        <span>View</span>
-                                    </div>
-                                </div>
-
-                                <div className="photo-info">
-                                    <span className="photo-uploader">{photo.uploader_name}</span>
-                                    <div className="photo-actions-inline">
-                                        <button onClick={() => handleDownload(photo)} className="photo-action-btn" title="Download">
-                                            <HiOutlineDownload />
-                                        </button>
-                                        {(photo.uploader_id === user?.id || event.is_creator) && (
-                                            <button onClick={() => handleDeletePhoto(photo.id)} className="photo-action-btn photo-action-delete" title="Delete">
-                                                <HiOutlineTrash />
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
             </div>
 
-            {/* Lightbox */}
+            {/* Lightbox - Moved OUTSIDE of animated container */}
             {lightboxPhoto && (
                 <div className="lightbox" onClick={closeLightbox}>
                     <button className="lightbox-close" onClick={closeLightbox} id="lightbox-close">
@@ -368,9 +362,11 @@ export default function EventDetail() {
                     )}
 
                     <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
-                        <img src={lightboxPhoto.url} alt={lightboxPhoto.file_name} className="lightbox-image" />
+                        <div className="lightbox-image-container">
+                            <img src={lightboxPhoto.url} alt={lightboxPhoto.file_name} className="lightbox-image" />
+                        </div>
                         <div className="lightbox-info">
-                            <span>Uploaded by {lightboxPhoto.uploader_name}</span>
+                            <span>Uploaded Anonymous</span>
                             <div className="lightbox-actions">
                                 <button onClick={() => handleDownload(lightboxPhoto)} className="btn btn-primary btn-sm" id="lightbox-download">
                                     <HiOutlineDownload />
@@ -387,6 +383,6 @@ export default function EventDetail() {
                     )}
                 </div>
             )}
-        </div>
+        </>
     );
 }
