@@ -325,9 +325,16 @@ export default function EventDetail() {
                                     <div className="photo-info">
                                         <span className="photo-uploader">{photo.uploader_name}</span>
                                         <div className="photo-actions-inline">
-                                            <button onClick={() => handleDownload(photo)} className="photo-action-btn" title="Download">
+                                            <a 
+                                                href={`${api.defaults.baseURL}/photos/download/${photo.id}`}
+                                                className="photo-action-btn" 
+                                                title="Download"
+                                                onClick={(e) => e.stopPropagation()}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
                                                 <HiOutlineDownload />
-                                            </button>
+                                            </a>
                                             {isAdmin && (
                                                 <button onClick={() => handleDeletePhoto(photo.id)} className="photo-action-btn photo-action-delete" title="Delete">
                                                     <HiOutlineTrash />
@@ -367,14 +374,20 @@ export default function EventDetail() {
                         <div className="lightbox-info">
                             <span>Uploaded Anonymous</span>
                             <div className="lightbox-actions">
-                                <button 
-                                    onClick={(e) => { e.stopPropagation(); handleDownload(lightboxPhoto); }} 
+                                <a 
+                                    href={`${api.defaults.baseURL}/photos/download/${lightboxPhoto.id}`}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.nativeEvent.stopImmediatePropagation();
+                                    }} 
                                     className="btn btn-primary btn-sm" 
                                     id="lightbox-download"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                 >
                                     <HiOutlineDownload />
                                     Download
-                                </button>
+                                </a>
                             </div>
                         </div>
                     </div>
