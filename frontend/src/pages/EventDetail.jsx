@@ -110,9 +110,23 @@ export default function EventDetail() {
             return toast.error('Select photos to download.');
         }
 
-        for (const photoId of selectedPhotos) {
-            const photo = photos.find(p => p.id === photoId);
-            if (photo) await handleDownload(photo);
+        toast.success(`Downloading ${selectedPhotos.length} photo(s)...`);
+
+        for (let i = 0; i < selectedPhotos.length; i++) {
+            const photo = photos.find(p => p.id === selectedPhotos[i]);
+            if (photo) {
+                const url = `${api.defaults.baseURL}/photos/download/${photo.id}`;
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', photo.file_name || 'photo.jpg');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                // Small delay between downloads so browser doesn't block them
+                if (i < selectedPhotos.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+            }
         }
         setSelectedPhotos([]);
     };

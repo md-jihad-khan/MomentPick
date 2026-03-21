@@ -173,5 +173,63 @@ router.get('/download/:photoId', async (req, res) => {
     }
 });
 
-module.exports = router;
+// POST /api/photos/download-bulk - Download multiple photos as a ZIP
+router.post('/download-bulk', async (req, res) => {
+    try {
+        const { photoIds } = req.body;
 
+        if (!photoIds || !Array.isArray(photoIds) || photoIds.length === 0) {
+            return res.status(400).json({ error: 'No photo IDs provided.' });
+        }
+
+        // Look up all requested photos
+        const allPhotos = db.from('photos').select().data;
+        const photosToDownload = allPhotos.filter(p => photoIds.includes(p.id));
+
+        if (photosToDownload.length === 0) {
+            return res.status(404).json({ error: 'No matching photos found.' });
+        }
+
+        const archiver = require('archiver');
+
+        // Set response headers for ZIP download
+        res.setHeader('Content-Type', 'application/zip');
+        res.setHeader('Content-Disposition', 'attachment; filename="MomentPick-photos.zip"');
+
+        const archive = archiver('zip', { zlib: { level: 5 } });
+
+        archive.on('error', (err) => {
+            console.error('[BULK DOWNLOAD] Archive error:', err);
+            if (!res.headersSent) {
+                res.status(500).json({ error: 'Failed to create ZIP.' });
+            }
+        });
+
+        // Pipe archive data to the response
+        archive.pipe(res);
+
+        // Add each photo to the ZIP
+        for (const photo of photosToDownload) {
+            try {
+                const response = await getFile(photo.storage_path);
+                if (response && response.Body) {
+                    const fileName = photo.file_name || `photo_${photo.id}.jpg`;
+                    archive.append(response.Body, { name: fileName });
+                }
+            } catch (fileErr) {
+                console.error(`[BULK DOWNLOAD] Failed to fetch ${photo.id}:`, fileErr.message);
+                // Skip this file and continue with others
+            }
+        }
+
+        // Finalize the archive
+        await archive.finalize();
+    } catch (err) {
+        console.error('[BULK DOWNLOAD ERROR]', err);
+        if (!res.headersSent) {
+            res.status(500).json({ error: 'Failed to download photos.' });
+        }
+    }
+});
+
+module.exports = router;
