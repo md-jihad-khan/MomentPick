@@ -54,14 +54,24 @@ function readDB() {
     }
 }
 
+// Debounce timer for R2 backup — prevents race conditions on rapid writes
+let _backupTimer = null;
+
 function writeDB(data) {
     try {
         const json = JSON.stringify(data, null, 2);
         fs.writeFileSync(DB_PATH, json, 'utf8');
-        // Backup to R2 in the background (non-blocking)
-        uploadFile('_backup/db.json', Buffer.from(json), 'application/json')
-            .then(() => console.log('[DB] Backup synced to R2.'))
-            .catch((err) => console.error('[DB] Backup sync failed:', err.message));
+
+        // Debounce: wait 1 second after last write, then backup the final state to R2
+        // This prevents stale data from overwriting newer data during rapid deletes
+        if (_backupTimer) clearTimeout(_backupTimer);
+        _backupTimer = setTimeout(() => {
+            // Read the LATEST file from disk (not the 'json' variable which may be stale)
+            const latestJson = fs.readFileSync(DB_PATH, 'utf8');
+            uploadFile('_backup/db.json', Buffer.from(latestJson), 'application/json')
+                .then(() => console.log('[DB] Backup synced to R2.'))
+                .catch((err) => console.error('[DB] Backup sync failed:', err.message));
+        }, 1000);
     } catch (err) {
         console.error('Error writing database:', err);
     }
