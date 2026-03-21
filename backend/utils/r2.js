@@ -61,7 +61,7 @@ const getFile = async (fileName) => {
 
 const deleteFiles = async (fileNames) => {
     if (!fileNames || fileNames.length === 0) return;
-    
+
     const command = new DeleteObjectsCommand({
         Bucket: process.env.R2_BUCKET_NAME,
         Delete: {

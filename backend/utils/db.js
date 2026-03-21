@@ -1,8 +1,43 @@
 const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
+const { uploadFile, getFile } = require('./r2');
 
 const DB_PATH = path.join(__dirname, '../db.json');
+
+// Helper: convert R2 readable stream to string
+function streamToString(stream) {
+    return new Promise((resolve, reject) => {
+        const chunks = [];
+        stream.on('data', (chunk) => chunks.push(chunk));
+        stream.on('error', reject);
+        stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+    });
+}
+
+/**
+ * Called once on server startup.
+ * Downloads db.json from R2 so data survives Render's ephemeral disk resets.
+ */
+async function initDB() {
+    try {
+        console.log('[DB] Restoring database from Cloudflare R2...');
+        const response = await getFile('_backup/db.json');
+        if (response && response.Body) {
+            const data = await streamToString(response.Body);
+            // Validate it's proper JSON before writing
+            JSON.parse(data);
+            fs.writeFileSync(DB_PATH, data, 'utf8');
+            console.log('[DB] ✅ Database restored from R2 backup.');
+        }
+    } catch (err) {
+        if (err.name === 'NoSuchKey' || err.$metadata?.httpStatusCode === 404) {
+            console.log('[DB] No backup found on R2 — starting fresh.');
+        } else {
+            console.error('[DB] ⚠️ Could not restore from R2:', err.message);
+        }
+    }
+}
 
 function readDB() {
     try {
@@ -21,7 +56,12 @@ function readDB() {
 
 function writeDB(data) {
     try {
-        fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
+        const json = JSON.stringify(data, null, 2);
+        fs.writeFileSync(DB_PATH, json, 'utf8');
+        // Backup to R2 in the background (non-blocking)
+        uploadFile('_backup/db.json', Buffer.from(json), 'application/json')
+            .then(() => console.log('[DB] Backup synced to R2.'))
+            .catch((err) => console.error('[DB] Backup sync failed:', err.message));
     } catch (err) {
         console.error('Error writing database:', err);
     }
@@ -75,6 +115,7 @@ const createQueryBuilder = (data) => {
 };
 
 const db = {
+    initDB,
     from: (collectionName) => ({
         select: (query = '*') => {
             const data = readDB()[collectionName] || [];
@@ -89,7 +130,7 @@ const db = {
             }));
             currentDB[collectionName].push(...newRecords);
             writeDB(currentDB);
-            
+
             return {
                 select: () => createQueryBuilder(newRecords),
                 single: () => ({ data: newRecords[0], error: null }),
@@ -126,4 +167,3 @@ const db = {
 };
 
 module.exports = db;
-

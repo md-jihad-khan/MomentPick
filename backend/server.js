@@ -51,7 +51,18 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error', details: err.message });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 MomentPick server running on port ${PORT}`);
+const db = require('./utils/db');
+
+// Restore database from R2 backup before accepting requests
+db.initDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`🚀 MomentPick server running on port ${PORT}`);
+  });
+}).catch((err) => {
+  console.error('Failed to initialize DB:', err);
+  // Start anyway even if R2 restore fails
+  app.listen(PORT, () => {
+    console.log(`🚀 MomentPick server running on port ${PORT} (without R2 restore)`);
+  });
 });
 
