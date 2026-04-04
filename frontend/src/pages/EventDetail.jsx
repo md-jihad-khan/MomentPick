@@ -110,8 +110,36 @@ export default function EventDetail() {
             return toast.error('Select photos to download.');
         }
 
-        toast.success(`Downloading ${selectedPhotos.length} photo(s)...`);
+        // Try modern File System Access API first (Avoids multiple download prompt by picking a folder once)
+        if ('showDirectoryPicker' in window) {
+            try {
+                const directoryHandle = await window.showDirectoryPicker();
+                const toastId = toast.loading(`Starting save to folder...`);
 
+                for (let i = 0; i < selectedPhotos.length; i++) {
+                    const photo = photos.find(p => p.id === selectedPhotos[i]);
+                    if (!photo) continue;
+
+                    toast.loading(`Saving photo ${i + 1} of ${selectedPhotos.length}...`, { id: toastId });
+                    
+                    const res = await api.get(`/photos/download/${photo.id}`, { responseType: 'blob' });
+                    const fileHandle = await directoryHandle.getFileHandle(photo.file_name || `photo_${photo.id}.jpg`, { create: true });
+                    const writable = await fileHandle.createWritable();
+                    await writable.write(res.data);
+                    await writable.close();
+                }
+                
+                toast.success('All photos saved to your folder!', { id: toastId });
+                setSelectedPhotos([]);
+                return;
+            } catch (err) {
+                if (err.name === 'AbortError') return; // User cancelled picker
+                console.warn('Folder picker failed, falling back to individual downloads:', err);
+            }
+        }
+
+        // Fallback: Individual downloads with a ~2s delay to bypass "Multiple Download" blocks
+        toast.success(`Starting ${selectedPhotos.length} individual downloads...`);
         for (let i = 0; i < selectedPhotos.length; i++) {
             const photo = photos.find(p => p.id === selectedPhotos[i]);
             if (photo) {
@@ -122,9 +150,10 @@ export default function EventDetail() {
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                // Small delay between downloads so browser doesn't block them
+                
+                // 2 second delay is usually enough to prevent the "Allow multiple downloads" prompt in most browsers
                 if (i < selectedPhotos.length - 1) {
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    await new Promise(resolve => setTimeout(resolve, 2000));
                 }
             }
         }
